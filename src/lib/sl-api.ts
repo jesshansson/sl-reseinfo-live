@@ -248,6 +248,11 @@ export async function searchTrips(params: TripSearchParams): Promise<TripsRespon
   url.searchParams.set("name_origin", params.originId);
   url.searchParams.set("name_destination", params.destinationId);
   url.searchParams.set("calc_number_of_trips", String(params.numTrips ?? 3));
+
+  if (params.viaId) {
+    url.searchParams.set("type_via", "any");
+    url.searchParams.set("name_via", params.viaId);
+  }
   
   if (params.inclCommuter !== undefined) url.searchParams.set("incl_mot_0", String(params.inclCommuter));
   if (params.inclMetro !== undefined) url.searchParams.set("incl_mot_2", String(params.inclMetro));
