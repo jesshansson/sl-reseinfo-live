@@ -103,14 +103,14 @@ export default function DisruptionsPage() {
             <div key={i} className="bg-card rounded-lg p-4 shadow-card animate-pulse h-20" />
           ))}
         </div>
-      ) : deviations.length === 0 ? (
+      ) : filteredDeviations.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <Info className="h-10 w-10 mx-auto mb-3 opacity-50" />
-          <p>Inga störningar just nu</p>
+          <p>{lineSearch ? "Inga störningar matchar din sökning" : "Inga störningar just nu"}</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {deviations.map((dev) => {
+          {filteredDeviations.map((dev) => {
             const sv = dev.message_variants?.find((v) => v.language === "sv") || dev.message_variants?.[0];
             const isExpanded = expandedIds.has(dev.deviation_case_id);
             const level = dev.priority?.importance_level ?? 0;
