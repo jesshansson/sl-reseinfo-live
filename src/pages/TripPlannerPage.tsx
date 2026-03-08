@@ -91,37 +91,80 @@ function JourneyCard({ journey }: { journey: Journey }) {
         )}
       </button>
       {expanded && (
-        <div className="px-4 pb-4 space-y-2 border-t">
+        <div className="px-4 pb-4 border-t pt-3">
           {journey.legs.map((leg, i) => {
             const isTransit = !!leg.transportation?.product;
+            const isWalk = !isTransit;
             const depT = leg.origin.departureTimeEstimated || leg.origin.departureTimePlanned;
             const arrT = leg.destination.arrivalTimeEstimated || leg.destination.arrivalTimePlanned;
-            return (
-              <div key={i} className="flex gap-3 pt-2">
-                <div className="flex flex-col items-center">
-                  <div className={`w-2.5 h-2.5 rounded-full mt-1 ${isTransit ? "bg-primary" : "bg-muted-foreground"}`} />
-                  <div className="w-0.5 flex-1 bg-border" />
-                </div>
-                <div className="flex-1 pb-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="font-medium text-muted-foreground w-12">{formatTime(depT)}</span>
-                    <span className="font-medium">{leg.origin.disassembledName || leg.origin.name}</span>
+
+            // Use parent name for platforms, fallback to name
+            const originName = leg.origin.type === "platform" && leg.origin.parent?.name
+              ? leg.origin.parent.name.split(",")[0]
+              : leg.origin.disassembledName || leg.origin.name;
+            const destName = leg.destination.type === "platform" && leg.destination.parent?.name
+              ? leg.destination.parent.name.split(",")[0]
+              : leg.destination.disassembledName || leg.destination.name;
+
+            // Platform/track info
+            const originPlatform = leg.origin.type === "platform" ? leg.origin.disassembledName : undefined;
+            const destPlatform = leg.destination.type === "platform" ? leg.destination.disassembledName : undefined;
+
+            if (isWalk) {
+              return (
+                <div key={i} className="flex gap-3 py-2">
+                  <div className="flex flex-col items-center w-6">
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground/50 mt-1.5" />
+                    <div className="w-0.5 flex-1 border-l-2 border-dashed border-muted-foreground/30" />
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground/50 mb-0.5" />
                   </div>
-                  {isTransit && (
-                    <p className="text-xs text-primary mt-1 ml-14">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-muted-foreground w-12 shrink-0">{formatTime(depT)}</span>
+                      <span className="text-muted-foreground">{originName}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground ml-14 py-1 italic">
+                      🚶 Gå {formatDuration(leg.duration)}
+                    </p>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-muted-foreground w-12 shrink-0">{formatTime(arrT)}</span>
+                      <span className="text-muted-foreground">{destName}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div key={i} className="flex gap-3 py-2">
+                <div className="flex flex-col items-center w-6">
+                  <div className="w-3 h-3 rounded-full bg-primary mt-1" />
+                  <div className="w-0.5 flex-1 bg-primary/30" />
+                  <div className="w-3 h-3 rounded-full border-2 border-primary bg-card mb-0.5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-semibold text-foreground w-12 shrink-0">{formatTime(depT)}</span>
+                    <span className="font-semibold">{originName}</span>
+                    {originPlatform && (
+                      <span className="text-xs text-muted-foreground">Läge {originPlatform}</span>
+                    )}
+                  </div>
+                  <div className="ml-14 my-1.5 flex items-center gap-2">
+                    <span className="text-xs font-semibold px-2 py-0.5 bg-primary text-primary-foreground rounded">
                       {leg.transportation?.product?.name || getProductName(leg.transportation?.product?.class)}{" "}
-                      {leg.transportation?.disassembledName || leg.transportation?.number} →{" "}
-                      {leg.transportation?.destination?.name || ""}
-                    </p>
-                  )}
-                  {!isTransit && (
-                    <p className="text-xs text-muted-foreground mt-1 ml-14">
-                      Gå {formatDuration(leg.duration)}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-2 text-sm mt-1">
-                    <span className="font-medium text-muted-foreground w-12">{formatTime(arrT)}</span>
-                    <span className="font-medium">{leg.destination.disassembledName || leg.destination.name}</span>
+                      {leg.transportation?.disassembledName || leg.transportation?.number || ""}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      → {leg.transportation?.destination?.name || destName}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-semibold text-foreground w-12 shrink-0">{formatTime(arrT)}</span>
+                    <span className="font-semibold">{destName}</span>
+                    {destPlatform && (
+                      <span className="text-xs text-muted-foreground">Läge {destPlatform}</span>
+                    )}
                   </div>
                 </div>
               </div>
