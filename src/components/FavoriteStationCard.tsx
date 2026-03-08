@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchDepartures, formatTime, getMinutesUntil, getTransportModeColor, type Site } from "@/lib/sl-api";
-import { Star, ChevronRight, AlertTriangle } from "lucide-react";
+import { fetchDepartures, getMinutesUntil, getTransportModeColor, type Site } from "@/lib/sl-api";
+import { X, ChevronRight, AlertTriangle } from "lucide-react";
 
 interface FavoriteStationCardProps {
   site: Site;
@@ -20,17 +20,32 @@ export default function FavoriteStationCard({ site, onSelect, onRemove }: Favori
   const hasDeviations = (data?.stop_deviations?.length ?? 0) > 0 ||
     departures.some((d) => d.deviations && d.deviations.length > 0);
 
-  // Check if any departure is delayed
   const hasDelays = departures.some((d) => {
     if (!d.expected || !d.scheduled) return false;
     return new Date(d.expected) > new Date(d.scheduled);
   });
 
   return (
-    <div className="bg-card rounded-xl shadow-card overflow-hidden border border-border/50 hover:shadow-elevated transition-shadow">
+    <div className="bg-card rounded-xl shadow-card overflow-hidden border border-border/50 hover:shadow-elevated transition-shadow relative group">
+      {/* Remove button - positioned absolutely outside the main click area */}
       <button
-        className="w-full text-left"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove(site.id);
+        }}
+        className="absolute top-2 right-2 z-10 p-1 rounded-full bg-muted/80 hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-all"
+        title="Ta bort favorit"
+      >
+        <X className="h-3 w-3" />
+      </button>
+
+      {/* Main clickable card area */}
+      <div
+        role="button"
+        tabIndex={0}
+        className="cursor-pointer"
         onClick={() => onSelect(site)}
+        onKeyDown={(e) => { if (e.key === "Enter") onSelect(site); }}
       >
         <div className="px-4 pt-3 pb-2 flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
@@ -39,19 +54,7 @@ export default function FavoriteStationCard({ site, onSelect, onRemove }: Favori
             )}
             <h4 className="font-semibold text-sm truncate">{site.name}</h4>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemove(site.id);
-              }}
-              className="p-1 hover:bg-secondary rounded transition-colors"
-              title="Ta bort favorit"
-            >
-              <Star className="h-4 w-4 fill-accent text-accent" />
-            </button>
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
         </div>
 
         {isLoading ? (
@@ -62,7 +65,7 @@ export default function FavoriteStationCard({ site, onSelect, onRemove }: Favori
           </div>
         ) : departures.length === 0 ? (
           <div className="px-4 pb-3">
-            <p className="text-xs text-muted-foreground">Inga avgångar</p>
+            <p className="text-xs text-muted-foreground">Inga avgångar just nu</p>
           </div>
         ) : (
           <div className="px-4 pb-3 space-y-1">
@@ -89,7 +92,7 @@ export default function FavoriteStationCard({ site, onSelect, onRemove }: Favori
             })}
           </div>
         )}
-      </button>
+      </div>
 
       {data?.stop_deviations && data.stop_deviations.length > 0 && (
         <div className="px-4 pb-3 border-t border-border/50">
