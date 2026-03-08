@@ -179,6 +179,8 @@ function JourneyCard({ journey }: { journey: Journey }) {
 export default function TripPlannerPage() {
   const [origin, setOrigin] = useState<JourneyLocation | null>(null);
   const [destination, setDestination] = useState<JourneyLocation | null>(null);
+  const [via, setVia] = useState<JourneyLocation | null>(null);
+  const [showVia, setShowVia] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<Record<string, boolean>>({});
   const [routeType, setRouteType] = useState<TripSearchParams["routeType"]>("leasttime");
@@ -189,6 +191,7 @@ export default function TripPlannerPage() {
       ? {
           originId: origin.id,
           destinationId: destination.id,
+          viaId: via?.id,
           numTrips: 3,
           routeType,
           ...filters,
