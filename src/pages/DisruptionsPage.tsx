@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchDeviations, getTransportModeLabel } from "@/lib/sl-api";
-import { AlertTriangle, Info, ChevronDown, ChevronUp, Filter } from "lucide-react";
+import { AlertTriangle, Info, ChevronDown, ChevronUp, Filter, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const TRANSPORT_MODES = [
   { value: "METRO", label: "Tunnelbana" },
