@@ -22,6 +22,7 @@ function SeverityIcon({ level }: { level: number }) {
 export default function DisruptionsPage() {
   const [selectedModes, setSelectedModes] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
+  const [lineSearch, setLineSearch] = useState("");
 
   const { data: deviations = [], isLoading } = useQuery({
     queryKey: ["deviations", selectedModes],
@@ -30,6 +31,20 @@ export default function DisruptionsPage() {
     }),
     refetchInterval: 60000,
   });
+
+  const filteredDeviations = useMemo(() => {
+    if (!lineSearch.trim()) return deviations;
+    const q = lineSearch.trim().toLowerCase();
+    return deviations.filter((dev) => {
+      const linesMatch = dev.scope?.lines?.some(
+        (line) => line.designation?.toLowerCase().includes(q) || line.name?.toLowerCase().includes(q)
+      );
+      const headerMatch = dev.message_variants?.some(
+        (v) => v.header?.toLowerCase().includes(q) || v.scope_alias?.toLowerCase().includes(q)
+      );
+      return linesMatch || headerMatch;
+    });
+  }, [deviations, lineSearch]);
 
   const toggleMode = (mode: string) => {
     setSelectedModes((prev) =>
