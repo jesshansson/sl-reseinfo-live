@@ -30,10 +30,6 @@ export default function DeparturesPage() {
     refetchInterval: 30000,
   });
 
-  const handleSelectFavorite = (site: Site) => {
-    setSelectedSite(site);
-  };
-
   return (
     <div className="container py-8 max-w-2xl">
       <div className="mb-6">
@@ -41,64 +37,46 @@ export default function DeparturesPage() {
         <p className="text-muted-foreground text-sm">Sök en station för att se kommande avgångar</p>
       </div>
 
+      {/* Search — always visible, shows selected station as chip */}
       <div className="mb-6">
-        <StationSearch sites={sites} onSelect={setSelectedSite} placeholder="Sök station, t.ex. Slussen..." />
+        <StationSearch
+          sites={sites}
+          onSelect={setSelectedSite}
+          selectedSite={selectedSite}
+          onClear={() => setSelectedSite(null)}
+          placeholder="Sök station, t.ex. Slussen..."
+        />
       </div>
 
-      {/* Favorite stations */}
-      {favorites.length > 0 && !selectedSite && (
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
-            <Star className="h-3.5 w-3.5 fill-accent text-accent" />
-            Favoritstationer
-          </h3>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {favorites.map((site) => (
-              <FavoriteStationCard
-                key={site.id}
-                site={site}
-                onSelect={handleSelectFavorite}
-                onRemove={removeFavorite}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
+      {/* Station selected: show actions + departures */}
       {selectedSite && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">{selectedSite.name}</h3>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  if (isFavorite(selectedSite.id)) {
-                    removeFavorite(selectedSite.id);
-                  } else {
-                    addFavorite(selectedSite);
-                  }
-                }}
-                className={isFavorite(selectedSite.id) ? "" : "text-muted-foreground"}
-                title={isFavorite(selectedSite.id) ? "Ta bort favorit" : "Lägg till som favorit"}
-              >
-                <Star className={`h-5 w-5 ${isFavorite(selectedSite.id) ? "fill-accent text-accent" : ""}`} />
-                <span className="text-xs ml-1">
-                  {isFavorite(selectedSite.id) ? "Favorit" : "Spara"}
-                </span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => refetch()}
-                disabled={isFetching}
-                className="text-muted-foreground"
-              >
-                <RefreshCw className={`h-4 w-4 mr-1 ${isFetching ? "animate-spin" : ""}`} />
-                Uppdatera
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (isFavorite(selectedSite.id)) {
+                  removeFavorite(selectedSite.id);
+                } else {
+                  addFavorite(selectedSite);
+                }
+              }}
+              className={isFavorite(selectedSite.id) ? "" : "text-muted-foreground"}
+            >
+              <Star className={`h-4 w-4 mr-1.5 ${isFavorite(selectedSite.id) ? "fill-accent text-accent" : ""}`} />
+              {isFavorite(selectedSite.id) ? "Sparad som favorit" : "Spara som favorit"}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="text-muted-foreground"
+            >
+              <RefreshCw className={`h-4 w-4 mr-1 ${isFetching ? "animate-spin" : ""}`} />
+              Uppdatera
+            </Button>
           </div>
 
           {departuresData?.stop_deviations && departuresData.stop_deviations.length > 0 && (
@@ -110,12 +88,35 @@ export default function DeparturesPage() {
           )}
 
           <DepartureBoard departures={departuresData?.departures || []} loading={isLoading} />
+        </div>
+      )}
 
-          <div className="mt-6 text-center">
-            <Button variant="ghost" size="sm" onClick={() => setSelectedSite(null)} className="text-muted-foreground">
-              ← Tillbaka till favoriter
-            </Button>
+      {/* No station selected: show favorites */}
+      {!selectedSite && favorites.length > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <Star className="h-3.5 w-3.5 fill-accent text-accent" />
+            Dina favoriter
+          </h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {favorites.map((site) => (
+              <FavoriteStationCard
+                key={site.id}
+                site={site}
+                onSelect={setSelectedSite}
+                onRemove={removeFavorite}
+              />
+            ))}
           </div>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!selectedSite && favorites.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">
+          <Star className="h-10 w-10 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">Sök efter en station ovan för att se avgångar</p>
+          <p className="text-xs mt-1">Du kan spara stationer som favoriter för snabb åtkomst</p>
         </div>
       )}
     </div>
