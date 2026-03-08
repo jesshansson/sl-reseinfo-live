@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { searchTrips, formatTime, type JourneyLocation, type TripSearchParams, type Journey } from "@/lib/sl-api";
 import JourneyStopSearch from "@/components/JourneyStopSearch";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Clock, Repeat, ChevronDown, ChevronUp, ArrowDownUp, Settings2 } from "lucide-react";
+import { ArrowRight, Clock, Repeat, ChevronDown, ChevronUp, ArrowDownUp, Settings2, Plus, X } from "lucide-react";
 
 const FILTER_OPTIONS = [
   { key: "inclCommuter", label: "Pendeltåg" },
@@ -179,6 +179,8 @@ function JourneyCard({ journey }: { journey: Journey }) {
 export default function TripPlannerPage() {
   const [origin, setOrigin] = useState<JourneyLocation | null>(null);
   const [destination, setDestination] = useState<JourneyLocation | null>(null);
+  const [via, setVia] = useState<JourneyLocation | null>(null);
+  const [showVia, setShowVia] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<Record<string, boolean>>({});
   const [routeType, setRouteType] = useState<TripSearchParams["routeType"]>("leasttime");
@@ -189,6 +191,7 @@ export default function TripPlannerPage() {
       ? {
           originId: origin.id,
           destinationId: destination.id,
+          viaId: via?.id,
           numTrips: 3,
           routeType,
           ...filters,
@@ -224,11 +227,42 @@ export default function TripPlannerPage() {
           />
         </div>
 
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-2 items-center">
           <Button variant="ghost" size="sm" onClick={swap} className="text-muted-foreground">
             <ArrowDownUp className="h-4 w-4" />
           </Button>
+          {!showVia && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowVia(true)}
+              className="text-muted-foreground text-xs"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Via
+            </Button>
+          )}
         </div>
+
+        {showVia && (
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-medium text-muted-foreground">Via</label>
+              <button
+                onClick={() => { setShowVia(false); setVia(null); }}
+                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+              >
+                <X className="h-3 w-3" />
+                Ta bort
+              </button>
+            </div>
+            <JourneyStopSearch
+              onSelect={setVia}
+              placeholder="Res via..."
+              value={via?.disassembledName || via?.name || ""}
+            />
+          </div>
+        )}
 
         <div>
           <label className="text-xs font-medium text-muted-foreground mb-1 block">Till</label>
