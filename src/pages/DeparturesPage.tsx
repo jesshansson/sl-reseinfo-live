@@ -5,7 +5,7 @@ import StationSearch from "@/components/StationSearch";
 import DepartureBoard from "@/components/DepartureBoard";
 import FavoriteStationCard from "@/components/FavoriteStationCard";
 import { useFavoriteStations } from "@/hooks/use-favorite-stations";
-import { RefreshCw, Star, StarOff } from "lucide-react";
+import { RefreshCw, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function DeparturesPage() {
@@ -80,14 +80,13 @@ export default function DeparturesPage() {
                     addFavorite(selectedSite);
                   }
                 }}
-                className="text-muted-foreground"
-                title={isFavorite(selectedSite.id) ? "Ta bort favorit" : "Lägg till favorit"}
+                className={isFavorite(selectedSite.id) ? "" : "text-muted-foreground"}
+                title={isFavorite(selectedSite.id) ? "Ta bort favorit" : "Lägg till som favorit"}
               >
-                {isFavorite(selectedSite.id) ? (
-                  <Star className="h-4 w-4 fill-accent text-accent" />
-                ) : (
-                  <StarOff className="h-4 w-4" />
-                )}
+                <Star className={`h-5 w-5 ${isFavorite(selectedSite.id) ? "fill-accent text-accent" : ""}`} />
+                <span className="text-xs ml-1">
+                  {isFavorite(selectedSite.id) ? "Favorit" : "Spara"}
+                </span>
               </Button>
               <Button
                 variant="ghost"
