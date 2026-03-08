@@ -5,7 +5,7 @@ import StationSearch from "@/components/StationSearch";
 import DepartureBoard from "@/components/DepartureBoard";
 import FavoriteStationCard from "@/components/FavoriteStationCard";
 import { useFavoriteStations } from "@/hooks/use-favorite-stations";
-import { RefreshCw, Star, StarOff } from "lucide-react";
+import { RefreshCw, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function DeparturesPage() {
