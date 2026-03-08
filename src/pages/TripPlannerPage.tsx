@@ -227,11 +227,42 @@ export default function TripPlannerPage() {
           />
         </div>
 
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-2 items-center">
           <Button variant="ghost" size="sm" onClick={swap} className="text-muted-foreground">
             <ArrowDownUp className="h-4 w-4" />
           </Button>
+          {!showVia && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowVia(true)}
+              className="text-muted-foreground text-xs"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Via
+            </Button>
+          )}
         </div>
+
+        {showVia && (
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-medium text-muted-foreground">Via</label>
+              <button
+                onClick={() => { setShowVia(false); setVia(null); }}
+                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+              >
+                <X className="h-3 w-3" />
+                Ta bort
+              </button>
+            </div>
+            <JourneyStopSearch
+              onSelect={setVia}
+              placeholder="Res via..."
+              value={via?.disassembledName || via?.name || ""}
+            />
+          </div>
+        )}
 
         <div>
           <label className="text-xs font-medium text-muted-foreground mb-1 block">Till</label>
