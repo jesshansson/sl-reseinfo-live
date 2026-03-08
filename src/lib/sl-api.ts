@@ -230,6 +230,7 @@ export async function searchStops(query: string): Promise<JourneyLocation[]> {
 export interface TripSearchParams {
   originId: string;
   destinationId: string;
+  viaId?: string;
   numTrips?: number;
   inclCommuter?: boolean;
   inclMetro?: boolean;
