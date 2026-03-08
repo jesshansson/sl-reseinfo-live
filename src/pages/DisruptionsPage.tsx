@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchDeviations, getTransportModeLabel } from "@/lib/sl-api";
-import { AlertTriangle, Info, ChevronDown, ChevronUp, Filter } from "lucide-react";
+import { AlertTriangle, Info, ChevronDown, ChevronUp, Filter, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const TRANSPORT_MODES = [
   { value: "METRO", label: "Tunnelbana" },
@@ -21,6 +22,7 @@ function SeverityIcon({ level }: { level: number }) {
 export default function DisruptionsPage() {
   const [selectedModes, setSelectedModes] = useState<string[]>([]);
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
+  const [lineSearch, setLineSearch] = useState("");
 
   const { data: deviations = [], isLoading } = useQuery({
     queryKey: ["deviations", selectedModes],
@@ -29,6 +31,20 @@ export default function DisruptionsPage() {
     }),
     refetchInterval: 60000,
   });
+
+  const filteredDeviations = useMemo(() => {
+    if (!lineSearch.trim()) return deviations;
+    const q = lineSearch.trim().toLowerCase();
+    return deviations.filter((dev) => {
+      const linesMatch = dev.scope?.lines?.some(
+        (line) => line.designation?.toLowerCase().includes(q) || line.name?.toLowerCase().includes(q)
+      );
+      const headerMatch = dev.message_variants?.some(
+        (v) => v.header?.toLowerCase().includes(q) || v.scope_alias?.toLowerCase().includes(q)
+      );
+      return linesMatch || headerMatch;
+    });
+  }, [deviations, lineSearch]);
 
   const toggleMode = (mode: string) => {
     setSelectedModes((prev) =>
@@ -69,7 +85,17 @@ export default function DisruptionsPage() {
             </Button>
           ))}
         </div>
-      </div>
+
+        <div className="mt-3 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={lineSearch}
+            onChange={(e) => setLineSearch(e.target.value)}
+            placeholder="Sök linje, t.ex. 17 eller 873..."
+            className="pl-10 bg-card"
+          />
+        </div>
+        </div>
 
       {isLoading ? (
         <div className="space-y-3">
@@ -77,14 +103,14 @@ export default function DisruptionsPage() {
             <div key={i} className="bg-card rounded-lg p-4 shadow-card animate-pulse h-20" />
           ))}
         </div>
-      ) : deviations.length === 0 ? (
+      ) : filteredDeviations.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <Info className="h-10 w-10 mx-auto mb-3 opacity-50" />
-          <p>Inga störningar just nu</p>
+          <p>{lineSearch ? "Inga störningar matchar din sökning" : "Inga störningar just nu"}</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {deviations.map((dev) => {
+          {filteredDeviations.map((dev) => {
             const sv = dev.message_variants?.find((v) => v.language === "sv") || dev.message_variants?.[0];
             const isExpanded = expandedIds.has(dev.deviation_case_id);
             const level = dev.priority?.importance_level ?? 0;
