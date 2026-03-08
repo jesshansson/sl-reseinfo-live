@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { searchTrips, formatTime, type JourneyLocation, type TripSearchParams, type Journey } from "@/lib/sl-api";
 import JourneyStopSearch from "@/components/JourneyStopSearch";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Clock, Repeat, ChevronDown, ChevronUp, ArrowDownUp, Settings2 } from "lucide-react";
+import { ArrowRight, Clock, Repeat, ChevronDown, ChevronUp, ArrowDownUp, Settings2, Plus, X } from "lucide-react";
 
 const FILTER_OPTIONS = [
   { key: "inclCommuter", label: "Pendeltåg" },
