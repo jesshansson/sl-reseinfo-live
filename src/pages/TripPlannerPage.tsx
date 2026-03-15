@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { searchTrips, formatTime, type JourneyLocation, type TripSearchParams, type Journey } from "@/lib/sl-api";
 import JourneyStopSearch from "@/components/JourneyStopSearch";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowRight, Clock, Repeat, ChevronDown, ChevronUp, ArrowDownUp, Settings2, Plus, X } from "lucide-react";
 
 const FILTER_OPTIONS = [
@@ -19,6 +21,36 @@ const ROUTE_TYPES = [
   { value: "leastinterchange" as const, label: "Färst byten" },
   { value: "leastwalking" as const, label: "Minst gång" },
 ];
+
+const TIME_SEARCH_TYPES = [
+  { value: "now" as const, label: "Nu" },
+  { value: "dep" as const, label: "Avgå vid" },
+  { value: "arr" as const, label: "Anländ senast" },
+];
+
+function formatInputDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatInputTime(date: Date) {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
+function getDefaultSearchDateTime() {
+  const rounded = new Date();
+  rounded.setSeconds(0, 0);
+  rounded.setMinutes(rounded.getMinutes() + ((5 - (rounded.getMinutes() % 5)) % 5));
+
+  return {
+    date: formatInputDate(rounded),
+    time: formatInputTime(rounded),
+  };
+}
 
 function formatDuration(seconds: number) {
   const mins = Math.round(seconds / 60);
@@ -184,6 +216,8 @@ export default function TripPlannerPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<Record<string, boolean>>({});
   const [routeType, setRouteType] = useState<TripSearchParams["routeType"]>("leasttime");
+  const [{ date: searchDate, time: searchTime }, setSearchDateTime] = useState(getDefaultSearchDateTime);
+  const [searchFor, setSearchFor] = useState<"now" | NonNullable<TripSearchParams["searchFor"]>>("now");
   const [searchKey, setSearchKey] = useState(0);
 
   const searchParams: TripSearchParams | null =
@@ -193,6 +227,9 @@ export default function TripPlannerPage() {
           destinationId: destination.id,
           viaId: via?.id,
           numTrips: 3,
+          date: searchFor === "now" ? undefined : searchDate || undefined,
+          time: searchFor === "now" ? undefined : searchTime || undefined,
+          searchFor: searchFor === "now" ? undefined : searchFor,
           routeType,
           ...filters,
         }
@@ -271,6 +308,60 @@ export default function TripPlannerPage() {
             placeholder="Vart ska du?"
             value={destination?.disassembledName || destination?.name || ""}
           />
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-[1.15fr_1fr_1fr]">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">När vill du åka?</label>
+            <Select
+              value={searchFor}
+              onValueChange={(value) => setSearchFor(value as "now" | NonNullable<TripSearchParams["searchFor"]>)}
+            >
+              <SelectTrigger className="bg-card">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TIME_SEARCH_TYPES.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Datum</label>
+            <Input
+              type="date"
+              value={searchDate}
+              disabled={searchFor === "now"}
+              onChange={(e) =>
+                setSearchDateTime((current) => ({
+                  ...current,
+                  date: e.target.value,
+                }))
+              }
+              className="bg-card"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Tid</label>
+            <Input
+              type="time"
+              step={300}
+              value={searchTime}
+              disabled={searchFor === "now"}
+              onChange={(e) =>
+                setSearchDateTime((current) => ({
+                  ...current,
+                  time: e.target.value,
+                }))
+              }
+              className="bg-card"
+            />
+          </div>
         </div>
       </div>
 

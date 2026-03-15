@@ -232,6 +232,9 @@ export interface TripSearchParams {
   destinationId: string;
   viaId?: string;
   numTrips?: number;
+  date?: string;
+  time?: string;
+  searchFor?: "dep" | "arr";
   inclCommuter?: boolean;
   inclMetro?: boolean;
   inclTram?: boolean;
@@ -253,6 +256,10 @@ export async function searchTrips(params: TripSearchParams): Promise<TripsRespon
     url.searchParams.set("type_via", "any");
     url.searchParams.set("name_via", params.viaId);
   }
+
+  if (params.date) url.searchParams.set("itd_date", params.date.replaceAll("-", ""));
+  if (params.time) url.searchParams.set("itd_time", params.time.replace(":", ""));
+  if (params.searchFor) url.searchParams.set("itd_trip_date_time_dep_arr", params.searchFor);
   
   if (params.inclCommuter !== undefined) url.searchParams.set("incl_mot_0", String(params.inclCommuter));
   if (params.inclMetro !== undefined) url.searchParams.set("incl_mot_2", String(params.inclMetro));
