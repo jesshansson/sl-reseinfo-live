@@ -6,6 +6,7 @@ interface FavoriteStationCardProps {
   site: Site;
   onSelect: (site: Site) => void;
   onRemove: (siteId: number) => void;
+  hideRemove?: boolean;
 }
 
 export default function FavoriteStationCard({ site, onSelect, onRemove }: FavoriteStationCardProps) {
