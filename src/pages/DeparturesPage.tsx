@@ -64,7 +64,7 @@ export default function DeparturesPage() {
     refetchInterval: 30000,
   });
 
-  const showNearby = !selectedSite && favorites.length === 0;
+  const showNearby = !selectedSite && favorites.length === 0 && !hideNearby;
   const { nearby, loading: nearbyLoading } = useNearbyStations(sites, showNearby);
 
   return (
