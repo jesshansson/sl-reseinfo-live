@@ -43,6 +43,7 @@ function useNearbyStations(sites: Site[], enabled: boolean) {
 
 export default function DeparturesPage() {
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
+  const [hideNearby, setHideNearby] = useState(false);
   const { favorites, addFavorite, removeFavorite, isFavorite } = useFavoriteStations();
 
   const { data: sites = [] } = useQuery({
