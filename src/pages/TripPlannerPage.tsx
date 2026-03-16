@@ -1,11 +1,40 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { searchTrips, formatTime, type JourneyLocation, type TripSearchParams, type Journey } from "@/lib/sl-api";
 import JourneyStopSearch from "@/components/JourneyStopSearch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowRight, Clock, Repeat, ChevronDown, ChevronUp, ArrowDownUp, Settings2, Plus, X } from "lucide-react";
+import { ArrowRight, Clock, Repeat, ChevronDown, ChevronUp, ArrowDownUp, Settings2, Plus, X, History } from "lucide-react";
+
+const RECENT_SEARCHES_KEY = "sl-recent-trip-searches";
+const MAX_RECENT = 3;
+
+interface RecentSearch {
+  origin: JourneyLocation;
+  destination: JourneyLocation;
+  via?: JourneyLocation | null;
+  timestamp: number;
+}
+
+function loadRecentSearches(): RecentSearch[] {
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentSearch(search: RecentSearch) {
+  const existing = loadRecentSearches();
+  // Remove duplicate (same origin+destination)
+  const filtered = existing.filter(
+    (s) => !(s.origin.id === search.origin.id && s.destination.id === search.destination.id && (s.via?.id || null) === (search.via?.id || null))
+  );
+  const updated = [search, ...filtered].slice(0, MAX_RECENT);
+  localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+  return updated;
+}
 
 const FILTER_OPTIONS = [
   { key: "inclCommuter", label: "Pendeltåg" },
@@ -216,6 +245,8 @@ export default function TripPlannerPage() {
   const [{ date: searchDate, time: searchTime }, setSearchDateTime] = useState(getDefaultSearchDateTime);
   const [searchFor, setSearchFor] = useState<"now" | NonNullable<TripSearchParams["searchFor"]>>("now");
   const [searchKey, setSearchKey] = useState(0);
+
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>(loadRecentSearches);
 
   const searchParams: TripSearchParams | null =
     origin && destination
@@ -433,10 +464,58 @@ export default function TripPlannerPage() {
       <Button
         className="w-full"
         disabled={!origin || !destination}
-        onClick={() => setSearchKey((k) => k + 1)}
+        onClick={() => {
+          if (origin && destination) {
+            const updated = saveRecentSearch({ origin, destination, via, timestamp: Date.now() });
+            setRecentSearches(updated);
+          }
+          setSearchKey((k) => k + 1);
+        }}
       >
         Sök resa
       </Button>
+
+      {/* Recent searches - shown when no results */}
+      {searchKey === 0 && recentSearches.length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <History className="h-3.5 w-3.5" />
+            Tidigare sökta resor
+          </h3>
+          <div className="space-y-2">
+            {recentSearches.map((search, i) => (
+              <button
+                key={i}
+                className="w-full flex items-center gap-3 px-4 py-3 bg-card rounded-lg border border-border/50 hover:shadow-card transition-shadow text-left text-sm"
+                onClick={() => {
+                  setOrigin(search.origin);
+                  setDestination(search.destination);
+                  if (search.via) {
+                    setVia(search.via);
+                    setShowVia(true);
+                  } else {
+                    setVia(null);
+                    setShowVia(false);
+                  }
+                  setSearchKey((k) => k + 1);
+                }}
+              >
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="font-medium truncate">{search.origin.disassembledName || search.origin.name}</span>
+                  {search.via && (
+                    <>
+                      <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground truncate">{search.via.disassembledName || search.via.name}</span>
+                    </>
+                  )}
+                  <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                  <span className="font-medium truncate">{search.destination.disassembledName || search.destination.name}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {isLoading && (
         <div className="mt-6 space-y-3">
