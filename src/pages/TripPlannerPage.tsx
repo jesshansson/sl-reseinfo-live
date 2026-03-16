@@ -464,10 +464,58 @@ export default function TripPlannerPage() {
       <Button
         className="w-full"
         disabled={!origin || !destination}
-        onClick={() => setSearchKey((k) => k + 1)}
+        onClick={() => {
+          if (origin && destination) {
+            const updated = saveRecentSearch({ origin, destination, via, timestamp: Date.now() });
+            setRecentSearches(updated);
+          }
+          setSearchKey((k) => k + 1);
+        }}
       >
         Sök resa
       </Button>
+
+      {/* Recent searches - shown when no results */}
+      {searchKey === 0 && recentSearches.length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <History className="h-3.5 w-3.5" />
+            Tidigare sökta resor
+          </h3>
+          <div className="space-y-2">
+            {recentSearches.map((search, i) => (
+              <button
+                key={i}
+                className="w-full flex items-center gap-3 px-4 py-3 bg-card rounded-lg border border-border/50 hover:shadow-card transition-shadow text-left text-sm"
+                onClick={() => {
+                  setOrigin(search.origin);
+                  setDestination(search.destination);
+                  if (search.via) {
+                    setVia(search.via);
+                    setShowVia(true);
+                  } else {
+                    setVia(null);
+                    setShowVia(false);
+                  }
+                  setSearchKey((k) => k + 1);
+                }}
+              >
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="font-medium truncate">{search.origin.disassembledName || search.origin.name}</span>
+                  {search.via && (
+                    <>
+                      <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground truncate">{search.via.disassembledName || search.via.name}</span>
+                    </>
+                  )}
+                  <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                  <span className="font-medium truncate">{search.destination.disassembledName || search.destination.name}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {isLoading && (
         <div className="mt-6 space-y-3">
