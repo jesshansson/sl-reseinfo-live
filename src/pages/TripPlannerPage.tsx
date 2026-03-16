@@ -1,11 +1,40 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { searchTrips, formatTime, type JourneyLocation, type TripSearchParams, type Journey } from "@/lib/sl-api";
 import JourneyStopSearch from "@/components/JourneyStopSearch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowRight, Clock, Repeat, ChevronDown, ChevronUp, ArrowDownUp, Settings2, Plus, X } from "lucide-react";
+import { ArrowRight, Clock, Repeat, ChevronDown, ChevronUp, ArrowDownUp, Settings2, Plus, X, History } from "lucide-react";
+
+const RECENT_SEARCHES_KEY = "sl-recent-trip-searches";
+const MAX_RECENT = 3;
+
+interface RecentSearch {
+  origin: JourneyLocation;
+  destination: JourneyLocation;
+  via?: JourneyLocation | null;
+  timestamp: number;
+}
+
+function loadRecentSearches(): RecentSearch[] {
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentSearch(search: RecentSearch) {
+  const existing = loadRecentSearches();
+  // Remove duplicate (same origin+destination)
+  const filtered = existing.filter(
+    (s) => !(s.origin.id === search.origin.id && s.destination.id === search.destination.id && (s.via?.id || null) === (search.via?.id || null))
+  );
+  const updated = [search, ...filtered].slice(0, MAX_RECENT);
+  localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+  return updated;
+}
 
 const FILTER_OPTIONS = [
   { key: "inclCommuter", label: "Pendeltåg" },
