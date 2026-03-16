@@ -246,6 +246,8 @@ export default function TripPlannerPage() {
   const [searchFor, setSearchFor] = useState<"now" | NonNullable<TripSearchParams["searchFor"]>>("now");
   const [searchKey, setSearchKey] = useState(0);
 
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>(loadRecentSearches);
+
   const searchParams: TripSearchParams | null =
     origin && destination
       ? {
