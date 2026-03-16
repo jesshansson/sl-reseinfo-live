@@ -64,8 +64,10 @@ export default function DeparturesPage() {
     refetchInterval: 30000,
   });
 
-  const showNearby = !selectedSite && favorites.length === 0 && !hideNearby;
+  const showNearby = !selectedSite && !hideNearby;
   const { nearby, loading: nearbyLoading } = useNearbyStations(sites, showNearby);
+  // Filter out favorites from nearby to avoid duplicates
+  const filteredNearby = nearby.filter((s) => !isFavorite(s.id));
 
   return (
     <div className="container py-8 max-w-2xl">
@@ -128,43 +130,44 @@ export default function DeparturesPage() {
         </div>
       )}
 
-      {/* No station selected: show favorites */}
-      {!selectedSite && favorites.length > 0 && (
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
-            <Star className="h-3.5 w-3.5 fill-accent text-accent" />
-            Dina favoriter
-          </h3>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {favorites.map((site) => (
-              <FavoriteStationCard
-                key={site.id}
-                site={site}
-                onSelect={setSelectedSite}
-                onRemove={removeFavorite}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* No station selected: show favorites + nearby */}
+      {!selectedSite && (
+        <div className="space-y-6">
+          {/* Favorites */}
+          {favorites.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <Star className="h-3.5 w-3.5 fill-accent text-accent" />
+                Dina favoriter
+              </h3>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {favorites.map((site) => (
+                  <FavoriteStationCard
+                    key={site.id}
+                    site={site}
+                    onSelect={setSelectedSite}
+                    onRemove={removeFavorite}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
-      {/* No station selected, no favorites: show nearby or empty state */}
-      {!selectedSite && favorites.length === 0 && (
-        <div>
+          {/* Nearby stations */}
           {!hideNearby && nearbyLoading && (
             <div className="text-center py-6 text-muted-foreground text-sm">
               Letar efter stationer i närheten...
             </div>
           )}
 
-          {!hideNearby && !nearbyLoading && nearby.length > 0 && (
+          {!hideNearby && !nearbyLoading && filteredNearby.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5" />
                 Stationer i närheten
               </h3>
               <div className="grid gap-3 sm:grid-cols-2">
-                {nearby.map((site) => (
+                {filteredNearby.map((site) => (
                   <FavoriteStationCard
                     key={site.id}
                     site={site}
@@ -185,7 +188,8 @@ export default function DeparturesPage() {
             </div>
           )}
 
-          {(hideNearby || (!nearbyLoading && nearby.length === 0)) && (
+          {/* Empty state: no favorites and nearby hidden/empty */}
+          {favorites.length === 0 && (hideNearby || (!nearbyLoading && filteredNearby.length === 0)) && (
             <div className="text-center py-12 text-muted-foreground">
               <Star className="h-10 w-10 mx-auto mb-3 opacity-30" />
               <p className="text-sm">Sök efter en station ovan för att se avgångar</p>
