@@ -9,7 +9,7 @@ interface FavoriteStationCardProps {
   hideRemove?: boolean;
 }
 
-export default function FavoriteStationCard({ site, onSelect, onRemove }: FavoriteStationCardProps) {
+export default function FavoriteStationCard({ site, onSelect, onRemove, hideRemove }: FavoriteStationCardProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["departures", site.id],
     queryFn: () => fetchDepartures(site.id),
