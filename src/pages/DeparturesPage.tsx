@@ -64,8 +64,10 @@ export default function DeparturesPage() {
     refetchInterval: 30000,
   });
 
-  const showNearby = !selectedSite && favorites.length === 0 && !hideNearby;
+  const showNearby = !selectedSite && !hideNearby;
   const { nearby, loading: nearbyLoading } = useNearbyStations(sites, showNearby);
+  // Filter out favorites from nearby to avoid duplicates
+  const filteredNearby = nearby.filter((s) => !isFavorite(s.id));
 
   return (
     <div className="container py-8 max-w-2xl">
