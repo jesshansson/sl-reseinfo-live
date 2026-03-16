@@ -196,9 +196,6 @@ export default function DeparturesPage() {
               <p className="text-xs mt-1">Du kan spara stationer som favoriter för snabb åtkomst</p>
             </div>
           )}
-        </div>
-      )}
-        </div>
       )}
     </div>
   );
