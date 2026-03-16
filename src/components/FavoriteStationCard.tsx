@@ -29,16 +29,18 @@ export default function FavoriteStationCard({ site, onSelect, onRemove, hideRemo
   return (
     <div className="bg-card rounded-xl shadow-card overflow-hidden border border-border/50 hover:shadow-elevated transition-shadow relative group">
       {/* Remove button - positioned absolutely outside the main click area */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove(site.id);
-        }}
-        className="absolute top-2 right-2 z-10 p-1 rounded-full bg-muted/80 hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-all"
-        title="Ta bort favorit"
-      >
-        <X className="h-3 w-3" />
-      </button>
+      {!hideRemove && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(site.id);
+          }}
+          className="absolute top-2 right-2 z-10 p-1 rounded-full bg-muted/80 hover:bg-destructive hover:text-destructive-foreground opacity-0 group-hover:opacity-100 transition-all"
+          title="Ta bort favorit"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      )}
 
       {/* Main clickable card area */}
       <div
