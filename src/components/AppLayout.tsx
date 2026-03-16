@@ -49,7 +49,7 @@ export default function AppLayout() {
                 <span className="hidden sm:inline">{item.label}</span>
                 {item.badge > 0 && (
                   <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                    {item.badge > 9 ? "9+" : item.badge}
+                    !
                   </span>
                 )}
               </NavLink>
