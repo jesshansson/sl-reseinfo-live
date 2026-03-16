@@ -45,7 +45,6 @@ function getDefaultSearchDateTime() {
   const rounded = new Date();
   rounded.setSeconds(0, 0);
   rounded.setMinutes(rounded.getMinutes() + ((5 - (rounded.getMinutes() % 5)) % 5));
-
   return {
     date: formatInputDate(rounded),
     time: formatInputTime(rounded),
@@ -130,7 +129,6 @@ function JourneyCard({ journey }: { journey: Journey }) {
             const depT = leg.origin.departureTimeEstimated || leg.origin.departureTimePlanned;
             const arrT = leg.destination.arrivalTimeEstimated || leg.destination.arrivalTimePlanned;
 
-            // Use parent name for platforms, fallback to name
             const originName = leg.origin.type === "platform" && leg.origin.parent?.name
               ? leg.origin.parent.name.split(",")[0]
               : leg.origin.disassembledName || leg.origin.name;
@@ -138,7 +136,6 @@ function JourneyCard({ journey }: { journey: Journey }) {
               ? leg.destination.parent.name.split(",")[0]
               : leg.destination.disassembledName || leg.destination.name;
 
-            // Platform/track info
             const originPlatform = leg.origin.type === "platform" ? leg.origin.disassembledName : undefined;
             const destPlatform = leg.destination.type === "platform" ? leg.destination.disassembledName : undefined;
 
@@ -247,6 +244,28 @@ export default function TripPlannerPage() {
     setDestination(o);
   };
 
+  const goToEarlier = () => {
+    const first = data?.journeys?.[0];
+    const firstDep = first?.legs[0]?.origin?.departureTimePlanned;
+    if (!firstDep) return;
+    const d = new Date(firstDep);
+    d.setMinutes(d.getMinutes() - 1);
+    setSearchDateTime({ date: formatInputDate(d), time: formatInputTime(d) });
+    setSearchFor("arr");
+    setSearchKey((k) => k + 1);
+  };
+
+  const goToLater = () => {
+    const last = data?.journeys?.[data.journeys.length - 1];
+    const lastDep = last?.legs[0]?.origin?.departureTimePlanned;
+    if (!lastDep) return;
+    const d = new Date(lastDep);
+    d.setMinutes(d.getMinutes() + 1);
+    setSearchDateTime({ date: formatInputDate(d), time: formatInputTime(d) });
+    setSearchFor("dep");
+    setSearchKey((k) => k + 1);
+  };
+
   return (
     <div className="container py-8 max-w-2xl">
       <div className="mb-6">
@@ -337,10 +356,7 @@ export default function TripPlannerPage() {
               value={searchDate}
               disabled={searchFor === "now"}
               onChange={(e) =>
-                setSearchDateTime((current) => ({
-                  ...current,
-                  date: e.target.value,
-                }))
+                setSearchDateTime((current) => ({ ...current, date: e.target.value }))
               }
               className="bg-card"
             />
@@ -354,10 +370,7 @@ export default function TripPlannerPage() {
               value={searchTime}
               disabled={searchFor === "now"}
               onChange={(e) =>
-                setSearchDateTime((current) => ({
-                  ...current,
-                  time: e.target.value,
-                }))
+                setSearchDateTime((current) => ({ ...current, time: e.target.value }))
               }
               className="bg-card"
             />
@@ -435,9 +448,25 @@ export default function TripPlannerPage() {
 
       {data?.journeys && data.journeys.length > 0 && (
         <div className="mt-6 space-y-3">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={goToEarlier}
+          >
+            ← Tidigare avgångar
+          </Button>
+
           {data.journeys.map((journey) => (
             <JourneyCard key={journey.tripId} journey={journey} />
           ))}
+
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={goToLater}
+          >
+            Senare avgångar →
+          </Button>
         </div>
       )}
 
