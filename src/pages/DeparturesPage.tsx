@@ -43,6 +43,7 @@ function useNearbyStations(sites: Site[], enabled: boolean) {
 
 export default function DeparturesPage() {
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
+  const [hideNearby, setHideNearby] = useState(false);
   const { favorites, addFavorite, removeFavorite, isFavorite } = useFavoriteStations();
 
   const { data: sites = [] } = useQuery({
@@ -63,7 +64,7 @@ export default function DeparturesPage() {
     refetchInterval: 30000,
   });
 
-  const showNearby = !selectedSite && favorites.length === 0;
+  const showNearby = !selectedSite && favorites.length === 0 && !hideNearby;
   const { nearby, loading: nearbyLoading } = useNearbyStations(sites, showNearby);
 
   return (
@@ -150,13 +151,13 @@ export default function DeparturesPage() {
       {/* No station selected, no favorites: show nearby or empty state */}
       {!selectedSite && favorites.length === 0 && (
         <div>
-          {nearbyLoading && (
+          {!hideNearby && nearbyLoading && (
             <div className="text-center py-6 text-muted-foreground text-sm">
               Letar efter stationer i närheten...
             </div>
           )}
 
-          {!nearbyLoading && nearby.length > 0 && (
+          {!hideNearby && !nearbyLoading && nearby.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5" />
@@ -169,13 +170,22 @@ export default function DeparturesPage() {
                     site={site}
                     onSelect={setSelectedSite}
                     onRemove={() => {}}
+                    hideRemove
                   />
                 ))}
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setHideNearby(true)}
+                className="mt-3 w-full text-muted-foreground"
+              >
+                Dölj stationer i närheten
+              </Button>
             </div>
           )}
 
-          {!nearbyLoading && nearby.length === 0 && (
+          {(hideNearby || (!nearbyLoading && nearby.length === 0)) && (
             <div className="text-center py-12 text-muted-foreground">
               <Star className="h-10 w-10 mx-auto mb-3 opacity-30" />
               <p className="text-sm">Sök efter en station ovan för att se avgångar</p>
